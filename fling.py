@@ -51,9 +51,8 @@ def get_parser():
 def main():
   parser = get_parser()
   options, args = parser.parse_args()
-  # Defaults are fine for now
-  #if not args:
-  #  sys.exit(parser.get_usage())
+  if not args:
+    sys.exit(parser.get_usage())
 
   host = options.host
   port = options.port
