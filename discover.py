@@ -30,7 +30,7 @@ import select
 import pybonjour
 
 REGTYPE  = '_anymote._tcp'
-TIMEOUT  = 5
+TIMEOUT  = 1
 
 # Contains (hostname, port) pairs
 

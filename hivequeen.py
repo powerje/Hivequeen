@@ -2,13 +2,15 @@
 
 import Tkinter
 import json
+import os
 import string 
 import thread
 import time
 
 from googletv.proto import keycodes_pb2
-import googletv
 import discover
+import googletv
+import pair
 
 keydict = {
         'Escape': 'BACK',
@@ -38,18 +40,26 @@ STATUS_IDLE = 'idle'
 STATUS_DISCOVERING = 'discovering...'
 STATUS_CONNECTING = 'connecting...'
 
+FILE_STORED_DEVICES = 'devices.json'
+FILE_CERT = 'cert.pem'
+
 class Hivequeen(Tkinter.Frame):
 
     def __init__(self, root):
         self.status = Tkinter.StringVar()
-        self.status.set(STATUS_IDLE)
+        self.updateStatus(STATUS_IDLE)
         self.gtv = None
+        # Stored devices is a dict of host: {port=port, cert=cert}
+        self._stored_devices = {}
+        if (os.path.isfile(FILE_STORED_DEVICES)):
+            with open(FILE_STORED_DEVICES) as f:
+                self._stored_devices = json.load(f)
+
         Tkinter.Frame.__init__(self, root)
         self.root = root
         root.title('HIVEQUEEN')
         self.makeMenuBar()
         self.makeWidgets()
-        #self.connect()
 
     def makeMenuBar(self):
         self.menu = Tkinter.Menu(self)
@@ -59,7 +69,7 @@ class Hivequeen(Tkinter.Frame):
         # File menu
         self.menu.add_cascade(label='File', menu=self.tkMenu)
         # Add items to the menu
-        self.tkMenu.add_command(label='Connect', command=self.connect)
+        self.tkMenu.add_command(label='Connect', command=self.connectPressed)
         self.tkMenu.add_command(label='Test Fling', command=self.fling)
 
     def makeWidgets(self):
@@ -86,9 +96,18 @@ class Hivequeen(Tkinter.Frame):
         self._gtvBox.grid(row=2, columnspan=2, padx=5, pady=5,
                 sticky=Tkinter.N+Tkinter.S+Tkinter.E+Tkinter.W)
 
+        Tkinter.Label(self.master, text='Enter pairing code below when asked:').grid(row=3, columnspan=2)
+        self._entry = Tkinter.Entry(self.master)
+        self._entry.grid(row=4, columnspan=2)
+        self._entry.bind("<Return>", self.sendSecret)
+
         for i in range(3):
             Tkinter.Grid.columnconfigure(self.master, i, weight=1)
             Tkinter.Grid.rowconfigure(self.master, i, weight=1)
+
+    def sendSecret(self, event):
+        # Pair blocks until receiving this code
+        self._pairer.pairing_code = self._entry.get() 
 
     def updateStatus(self, status):
         self.status.set("Status: {0}".format(status))
@@ -110,7 +129,14 @@ class Hivequeen(Tkinter.Frame):
             self.updateStatus(STATUS_CONNECTING)
             if (self._gtvBox.curselection()):
                 i = int(self._gtvBox.curselection()[0])
-                self.connect(self.tvs[i][0], self.tvs[i][1])
+                host = self.tvs[i][0]
+                port = self.tvs[i][1]
+
+                if host not in self._stored_devices:
+                    self._pairer = pair.Pair()
+                    self._pairer.connect(host, FILE_CERT)
+                time.sleep(1)
+                self.connect(host, port)
             else:
                 self.connect()
 
@@ -118,11 +144,17 @@ class Hivequeen(Tkinter.Frame):
 
     def connect(self, 
             host='NSZGS7_C01_U2-NSZGS7U125121524.local.',
-            port=9551,
-            cert='cert.pem'):
+            port=9551):
+        # TODO: make args default to None and connect to last used device if no args
         self.updateStatus('Connecting...')
-        with googletv.AnymoteProtocol(host, cert, port=port) as self.gtv:
+        with googletv.AnymoteProtocol(host, FILE_CERT, port=port) as self.gtv:
             self.updateStatus('Connected to {0} on port {1}'.format(host, port))
+
+            # Update stored devices
+            self._stored_devices[host] = {'port': port, 'cert': FILE_CERT}
+            with open(FILE_STORED_DEVICES, 'w') as f:
+                json.dump(self._stored_devices, f)
+                
             while True:
                time.sleep(500) 
 

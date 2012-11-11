@@ -22,6 +22,7 @@ import optparse
 import os
 import shlex
 import subprocess
+import time
 import googletv
 
 
@@ -66,8 +67,40 @@ def generate_cert(filename, country='US', state='CA', city='Mountain View',
   ]
   command = ' '.join(command) % kwargs
   args = shlex.split(command)
-  subprocess.Popen(args)
+  subprocess.call(args)
 
+class Pair():
+
+    def __init__(self):
+        self.pairing_code = None
+
+    def connect(self, host, cert, port=9552):
+      global pairing_code
+      if not os.path.isfile(cert):
+        generate_cert(cert)
+
+      print 'Initiating pairing...'
+      with googletv.PairingProtocol(host, cert, port=port) as gtv:
+        client_name = host
+        gtv.send_pairing_request(client_name)
+        gtv.recv_pairing_request_ack()
+        gtv.send_options()
+        gtv.recv_options()
+        gtv.send_configuration()
+        gtv.recv_configuration_ack()
+
+        # Block until pairing_code is set
+        while self.pairing_code is None:
+            time.sleep(1)
+
+        gtv.send_secret(self.pairing_code)
+
+        to_hex = lambda byte_str: ''.join(['%02X' % ord(x) for x in byte_str])
+        try:
+          secret = to_hex(gtv.recv_secret_ack().secret)
+          print 'Success! Received secret (hash) from Google TV: %s' % secret
+        except:
+          print 'Pairing failed'
 
 def main():
   parser = get_parser()

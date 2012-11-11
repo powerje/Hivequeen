@@ -33,6 +33,7 @@ nosetests.xml
 .mr.developer.cfg 
 
 .DS_Store
+devices.json
 *.swp
 *.pem
 cheat.py
