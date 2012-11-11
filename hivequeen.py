@@ -27,6 +27,7 @@ keydict = {
         'Right': 'DPAD_RIGHT',
         'F1': 'VOLUME_UP',
         'F2': 'VOLUME_DOWN',
+        'F3': 'SEARCH',
         'F7': 'MEDIA_REWIND',
         'F8': 'MEDIA_PLAY_PAUSE',
         'F9': 'MEDIA_FAST_FORWARD',
