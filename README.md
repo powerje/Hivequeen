@@ -8,7 +8,7 @@
     # Install pybonjour
     sudo easy_install pybonjour 
 
-    # Install [googletv-anymote](https://github.com/stevenle/googletv-anymote) (library that makes pairing with GTV easy)
+    # Install googletv-anymote (library that makes pairing with GTV easy)
     git clone https://github.com/stevenle/googletv-anymote.git 
     cd googletv-anymote 
     sudo python setup.py install 
@@ -24,4 +24,4 @@ The interface is terrible as I just whipped this up for personal use, but figure
 
 ## Acknowledgements ##
 
-Thanks to Steven Le for doing most of the work here by creating his googletv-anymote lib.
+Thanks to Steven Le for doing most of the work here by creating his [googletv-anymote](https://github.com/stevenle/googletv-anymote)  lib, and the Google TV team for creating the platform and protocol in the first place.
