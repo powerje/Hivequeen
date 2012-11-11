@@ -4,6 +4,9 @@
 
     # Install M2Crypto (required for pairing)
     sudo easy_install m2crypto
+    
+    # Install pybonjour
+    sudo easy_install pybonjour 
 
     # Install [googletv-anymote](https://github.com/stevenle/googletv-anymote) (library that makes pairing with GTV easy)
     git clone https://github.com/stevenle/googletv-anymote.git 
